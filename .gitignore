@@ -26,3 +26,4 @@ mlruns
 *.sqlite
 # IDE #
 *.vscode
+*.Zone.Identifier
