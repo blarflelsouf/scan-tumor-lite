@@ -2,6 +2,23 @@ import streamlit as st
 
 import requests
 
+# Initialization of a session_state as streamlit resets the whole page every time user interacts with it
+if 'import_image_btn' not in st.session_state:
+    st.session_state['import_image_btn'] = False
+
+if 'image_uploaded' not in st.session_state:
+    st.session_state['image_uploaded'] = False
+
+if 'tmp_mock_count' not in st.session_state: #Mock to display a result until API call is ready
+    st.session_state['tmp_mock_count'] = 0
+
+if 'diagnostic' not in st.session_state:
+    st.session_state['diagnostic'] = False
+
+# Initialization of variables
+img_allowed_extensions = ["jpg", "jpeg", "png"]
+scan_tumor_api_url = "http://localhost:8000/predict"
+
 # Some nice banner
 st.image("data/background_banner.png")
 
@@ -18,24 +35,12 @@ HOW_IT_WORKS_HTML = '<p>We provide a trained IA to help brain tumor detections.\
     Please submit a brain scanner image to get the IA diagnostic.</h2>'
 st.markdown(HOW_IT_WORKS_HTML, unsafe_allow_html=True)
 
-# Initialization of a session_state as streamlit resets the whole page every time user interacts with it
-if 'import_image_btn' not in st.session_state:
-    st.session_state['import_image_btn'] = False
-
-if 'image_uploaded' not in st.session_state:
-    st.session_state['image_uploaded'] = False
-
-if 'tmp_mock_count' not in st.session_state: #Mock to display a result until API call is ready
-    st.session_state['tmp_mock_count'] = 0
-
-if 'diagnostic' not in st.session_state:
-    st.session_state['diagnostic'] = False
-
-img_allowed_extensions = ["jpg", "jpeg", "png"]
 
 import_image_btn = st.button("Import brains scan",type="primary")
 if import_image_btn or st.session_state['import_image_btn']:
     st.session_state['import_image_btn'] = True
+
+    # User can upload image from its directory
     image_uploaded = st.file_uploader(label="In order to provide a diagnostic, our trained IA needs a scanner image of the brain.",
                     type=img_allowed_extensions,
                     accept_multiple_files=False,
@@ -44,20 +49,22 @@ if import_image_btn or st.session_state['import_image_btn']:
                     on_change=None, #callback à creuser
                     disabled=False,
                     label_visibility="visible")
+
+    # Image is displayed to user
     if image_uploaded is not None or st.session_state['image_uploaded']:
         st.session_state['image_uploaded'] = True
-        st.image(image_uploaded,caption="Brain scan uploaded with success")
-        #st.markdown("Image downloaded with success")
+        st.image(image_uploaded,caption=None)
+        st.markdown("Image downloaded with success")
+        # User can launch a diagnostic once image is validated
         launch_diag = st.button("Launch diagnostic")
         if launch_diag:
-            st.session_state['tmp_mock_count'] +=1
-            if st.session_state['tmp_mock_count'] // 2 == 0:
-                st.markdown("No tumor detected")
-            else:
-                st.markdown("A tumor has been detected")
+            #st.write(type(image_uploaded.getvalue()))
+            file_image_dict = {"image": image_uploaded.getvalue()}
+            #st.write(type(binary_image))
+            response = requests.post(scan_tumor_api_url,files= file_image_dict) # nota : we could push many images :)
+            st.write(response.json())
     else:
         launch_diag_disabled = st.button("Launch diagnostic",disabled=True,type="primary")
-
 
 # st.title("Off center :(")
 # col1, col2, col3 = st.beta_columns([1,1,1])
