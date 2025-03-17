@@ -13,3 +13,12 @@ cd scan-tumor-lite
 ## Setup virtual env
 pyenv virtualenv 3.10.6 scan-tumor-lite \
 pyenv local scan-tumor-lite
+
+## How to test UI
+\#Go to UI project repository and launch streamlit app via makefile instruction
+cd ~/code/blarflelsouf/scan-tumor-lite
+make streamlit
+
+\# Go to main project repository and launch uvicorn web server
+cd ~/code/blarflelsouf/Scan-tumor
+uvicorn api.fastapi:app --reload
