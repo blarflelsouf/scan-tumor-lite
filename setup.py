@@ -5,9 +5,9 @@ with open("requirements.txt") as f:
     content = f.readlines()
 requirements = [x.strip() for x in content if "git+" not in x]
 
-setup(name='scantumor',
+setup(name='scantumor-lite',
       version="0.0.1",
-      description="scan tumor Model V1 (automate_model_lifecycle)",
+      description="UI of scan tumor IA V1",
       license="None",
       author="Team Louis",
       author_email="contact@lewagon.org",
