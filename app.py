@@ -50,19 +50,30 @@ if import_image_btn or st.session_state['import_image_btn']:
                     disabled=False,
                     label_visibility="visible")
 
-    # Image is displayed to user
+    # Scan image is displayed to user
     if image_uploaded is not None or st.session_state['image_uploaded']:
         st.session_state['image_uploaded'] = True
         st.image(image_uploaded,caption=None)
-        st.markdown("Image downloaded with success")
+
         # User can launch a diagnostic once image is validated
         launch_diag = st.button("Launch diagnostic")
         if launch_diag:
-            #st.write(type(image_uploaded.getvalue()))
-            file_image_dict = {"image": image_uploaded.getvalue()}
-            #st.write(type(binary_image))
-            response = requests.post(scan_tumor_api_url,files= file_image_dict) # nota : we could push many images :)
-            st.write(response.json())
+            files = {"file": image_uploaded.getvalue()}
+            response = requests.post(scan_tumor_api_url,files= files) # nota : we could push many images :)
+            if response.status_code == 200:
+                #st.success(f"Diagnostic performed with sucess")
+                result = response.json()
+                # st.markdown(type(result))
+                # st.markdown(result["tumor"])
+                if result["tumor"]:
+                    st.markdown(f"A tumor **{result['tumor_type']}** has been detected")
+                    st.markdown(f"Tumor recall: {result['recall']}")
+                    st.markdown(f"{result['tumor_type']} precision: {result['precision']}")
+                else:
+                    st.success(f"No tumor has been detected")
+                    st.markdown(f"Tumor recall: {result['recall']}")
+            else:
+                st.error(f"An error occurred during the diagnostic: {response.text}")
     else:
         launch_diag_disabled = st.button("Launch diagnostic",disabled=True,type="primary")
 
