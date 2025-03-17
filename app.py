@@ -35,49 +35,55 @@ HOW_IT_WORKS_HTML = '<p>We provide a trained IA to help brain tumor detections.\
     Please submit a brain scanner image to get the IA diagnostic.</h2>'
 st.markdown(HOW_IT_WORKS_HTML, unsafe_allow_html=True)
 
+diag_area = st.container()
 
-import_image_btn = st.button("Import brains scan",type="primary")
-if import_image_btn or st.session_state['import_image_btn']:
-    st.session_state['import_image_btn'] = True
+with diag_area:
+    # Display a centered button with a 3 columns trick
+    colA_1, colA_2, colA_3 = st.columns(3)
+    with colA_2:
+        # Scan image upload & diagnostic request
+        import_image_btn = st.button("Import brains scan",type="primary")
+    if import_image_btn or st.session_state['import_image_btn']:
+        st.session_state['import_image_btn'] = True
 
-    # User can upload image from its directory
-    image_uploaded = st.file_uploader(label="In order to provide a diagnostic, our trained IA needs a scanner image of the brain.",
-                    type=img_allowed_extensions,
-                    accept_multiple_files=False,
-                    key='brain_img_to_predict',
-                    help=None, #tooltip à creuser
-                    on_change=None, #callback à creuser
-                    disabled=False,
-                    label_visibility="visible")
+        # User can upload image from its directory
+        image_uploaded = st.file_uploader(label="In order to provide a diagnostic, our trained IA needs a scanner image of the brain.",
+                        type=img_allowed_extensions,
+                        accept_multiple_files=False,
+                        key='brain_img_to_predict',
+                        help=None, #tooltip à creuser
+                        on_change=None, #callback à creuser
+                        disabled=False,
+                        label_visibility="visible")
 
-    # Scan image is displayed to user
-    if image_uploaded is not None or st.session_state['image_uploaded']:
-        st.session_state['image_uploaded'] = True
-        st.image(image_uploaded,caption=None)
+        # Scan image is displayed to user
+        if image_uploaded is not None or st.session_state['image_uploaded']:
+            st.session_state['image_uploaded'] = True
+            colB_1, colB_2 = st.columns(2, border = True, vertical_alignment = "top")
+            with colB_1:
+                img = st.image(image_uploaded,caption=None)
 
-        # User can launch a diagnostic once image is validated
-        launch_diag = st.button("Launch diagnostic")
-        if launch_diag:
-            files = {"file": image_uploaded.getvalue()}
-            response = requests.post(scan_tumor_api_url,files= files) # nota : we could push many images :)
-            if response.status_code == 200:
-                #st.success(f"Diagnostic performed with sucess")
-                result = response.json()
-                # st.markdown(type(result))
-                # st.markdown(result["tumor"])
-                if result["tumor"]:
-                    st.markdown(f"A tumor **{result['tumor_type']}** has been detected")
-                    st.markdown(f"Tumor recall: {result['recall']}")
-                    st.markdown(f"{result['tumor_type']} precision: {result['precision']}")
-                else:
-                    st.success(f"No tumor has been detected")
-                    st.markdown(f"Tumor recall: {result['recall']}")
-            else:
-                st.error(f"An error occurred during the diagnostic: {response.text}")
-    else:
-        launch_diag_disabled = st.button("Launch diagnostic",disabled=True,type="primary")
-
-# st.title("Off center :(")
-# col1, col2, col3 = st.beta_columns([1,1,1])
-# col2.title("Centered! :)")
-# col2.image(img, use_column_width=True)
+            with colB_2:
+                # User can launch a diagnostic once image is uploaded
+                colC_1, colC_2, colC_3 = st.columns([0.25,0.5,0.25])
+                with colC_2:
+                    launch_diag = st.button("Launch diagnostic")
+                if launch_diag:
+                    files = {"file": image_uploaded.getvalue()} #To read image as a Byte file
+                    response = requests.post(scan_tumor_api_url,files= files) # nota : we could push many images :)
+                    if response.status_code == 200:
+                        result = response.json()
+                        if result["tumor"]:
+                            st.error(f"⚠️A tumor **{result['tumor_type']}** has been detected")
+                            st.markdown(f"*Tumor recall: {result['recall']}*")
+                            st.markdown(f"*{result['tumor_type']} precision: {result['precision']}*")
+                        else:
+                            st.success(f"✅No tumor has been detected")
+                            st.markdown(f"$*Tumor recall: {result['recall']}*")
+                    else:
+                        st.error(f"An error occurred during the diagnostic: {response.text}")
+        else:
+            # Display disabled diagnostic button while image is not uploaded
+            colD_1, colD_2, colD_3 = st.columns(3)
+            with colD_2:
+                launch_diag_disabled = st.button("Launch diagnostic",disabled=True,type="primary")
