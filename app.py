@@ -1,89 +1,103 @@
 import streamlit as st
-
 import requests
+import time
 
-# Initialization of a session_state as streamlit resets the whole page every time user interacts with it
-if 'import_image_btn' not in st.session_state:
-    st.session_state['import_image_btn'] = False
+# Custom styles for background
+st.markdown(
+    """
+    <style>
+        body {
+            background-color: #E3F2FD;
+        }
+        .stButton>button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        div[data-testid="stFileUploader"] > div:first-child {
+            visibility: hidden;
+            height: 0px;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-if 'image_uploaded' not in st.session_state:
-    st.session_state['image_uploaded'] = False
+# Session state initialization
+for key in ['import_image_btn', 'image_uploaded', 'diagnostic', 'loading']:
+    if key not in st.session_state:
+        st.session_state[key] = False
 
-if 'tmp_mock_count' not in st.session_state: #Mock to display a result until API call is ready
-    st.session_state['tmp_mock_count'] = 0
-
-if 'diagnostic' not in st.session_state:
-    st.session_state['diagnostic'] = False
-
-# Initialization of variables
+# Configurations
 img_allowed_extensions = ["jpg", "jpeg", "png"]
 scan_tumor_api_url = "http://localhost:8000/predict"
 
-# Some nice banner
+# UI Elements
 st.image("data/background_banner.png")
-
-# Nice product title
-TITLE_HTML = '<h1>ML & DL BRAIN TUMOR</h1>'
-st.markdown(TITLE_HTML, unsafe_allow_html=True)
-
-# Catchy sub-title
-SUBTITLE_HTML = '<h3>Smart Scans, Clear Results</h3>'
-st.markdown(SUBTITLE_HTML, unsafe_allow_html=True)
-
-# A little text to explain the product
-HOW_IT_WORKS_HTML = '<p>We provide a trained IA to help brain tumor detections.\
-    Please submit a brain scanner image to get the IA diagnostic.</h2>'
-st.markdown(HOW_IT_WORKS_HTML, unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>ML & DL BRAIN TUMOR</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center;'>Smart Scans, Clear Results</h3>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Upload a brain scan to get an AI-powered diagnostic.</p>", unsafe_allow_html=True)
 
 diag_area = st.container()
 
 with diag_area:
-    # Display a centered button with a 3 columns trick
     colA_1, colA_2, colA_3 = st.columns(3)
     with colA_2:
-        # Scan image upload & diagnostic request
-        import_image_btn = st.button("Import brains scan",type="primary")
+        import_image_btn = st.button("Import Brain Scan", type="primary")
+
     if import_image_btn or st.session_state['import_image_btn']:
         st.session_state['import_image_btn'] = True
 
-        # User can upload image from its directory
-        image_uploaded = st.file_uploader(label="In order to provide a diagnostic, our trained IA needs a scanner image of the brain.",
-                        type=img_allowed_extensions,
-                        accept_multiple_files=False,
-                        key='brain_img_to_predict',
-                        help=None, #tooltip à creuser
-                        on_change=None, #callback à creuser
-                        disabled=False,
-                        label_visibility="visible")
+        image_uploaded = st.file_uploader(
+            "Upload a brain scan image:",
+            type=img_allowed_extensions,
+            key='brain_img_to_predict',
+            label_visibility="collapsed"  # Hide file name
+        )
 
-        # Scan image is displayed to user
-        if image_uploaded is not None or st.session_state['image_uploaded']:
+        if image_uploaded or st.session_state['image_uploaded']:
             st.session_state['image_uploaded'] = True
-            colB_1, colB_2 = st.columns(2, border = True, vertical_alignment = "top")
+            colB_1, colB_2 = st.columns(2)
             with colB_1:
-                img = st.image(image_uploaded,caption=None)
+                st.image(image_uploaded, use_container_width=True)
 
             with colB_2:
-                # User can launch a diagnostic once image is uploaded
-                colC_1, colC_2, colC_3 = st.columns([0.25,0.5,0.25])
+                colC_1, colC_2, colC_3 = st.columns([0.25, 0.5, 0.25])
                 with colC_2:
-                    launch_diag = st.button("Launch diagnostic")
+                    launch_diag = st.button("Launch Diagnostic")
+
                 if launch_diag:
-                    files = {"file": image_uploaded.getvalue()} #To read image as a Byte file
-                    response = requests.post(scan_tumor_api_url,files= files) # nota : we could push many images :)
+                    st.session_state['loading'] = True
+                    with st.spinner("Processing... Please wait."):
+                        time.sleep(2)  # Simulated delay
+                        files = {"file": image_uploaded.getvalue()}
+                        response = requests.post(scan_tumor_api_url, files=files, timeout=30)
+                    st.session_state['loading'] = False
+
                     if response.status_code == 200:
                         result = response.json()
+                        recall_percentage = round(result['recall'] * 100, 2)
+                        precision_percentage = round(result['precision'] * 100, 2)
+
+                        st.markdown("---")
+
                         if result["tumor"]:
-                            st.error(f"⚠️A tumor **{result['tumor_type']}** has been detected")
-                            st.markdown(f"*Tumor recall: {result['recall']}*")
-                            st.markdown(f"*{result['tumor_type']} precision: {result['precision']}*")
+                            st.error(f"⚠️ A tumor **{result['tumor_type'].capitalize()}** has been detected")
+                            st.markdown(f"*Tumor Recall: {recall_percentage}% (0% no tumor, 100% tumor)*")
+                            st.markdown(f"*{result['tumor_type'].capitalize()} Precision: {precision_percentage}%*")
                         else:
-                            st.success(f"✅No tumor has been detected")
-                            st.markdown(f"$*Tumor recall: {result['recall']}*")
+                            st.success("✅ No tumor has been detected!")
+                            st.markdown(f"*Tumor Recall: {recall_percentage}% (0% no tumor, 100% tumor)*")
+                            st.balloons()  # Balloon animation when no tumor detected
                     else:
-                        st.error(f"An error occurred during the diagnostic: {response.text}")
+                        st.error(f"Error during diagnostic: {response.text}")
         else:
-            # Display disabled diagnostic button while image is not uploaded
             colD_1, colD_2, colD_3 = st.columns(3)
             with colD_2:
-                launch_diag_disabled = st.button("Launch diagnostic",disabled=True,type="primary")
+                st.button("Launch Diagnostic", disabled=True, type="primary")
+
+# Footer Credit
+st.markdown("""
+    <hr>
+    <p style='text-align: center;'>Developed by Scan Tumor Group</p>
+""", unsafe_allow_html=True)
