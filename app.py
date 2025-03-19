@@ -30,7 +30,7 @@ for key in ['import_image_btn', 'image_uploaded', 'diagnostic', 'loading']:
 
 # Configurations
 img_allowed_extensions = ["jpg", "jpeg", "png"]
-scan_tumor_api_url = "http://localhost:8000/predict"
+scan_tumor_api_url = "https://scantumor-939517190032.europe-west1.run.app/predict"
 
 # UI Elements
 st.image("data/background_banner.png")
@@ -100,4 +100,9 @@ with diag_area:
 st.markdown("""
     <hr>
     <p style='text-align: center;'>Developed by Scan Tumor Group</p>
+    <p style='text-align: center; font-size: 12px; font-style: italic;'>This software is an AI-based tool designed to assist in the detection of brain tumors. \
+        It does not constitute a medical diagnosis and does not replace the evaluation of a qualified healthcare professional. \
+        The software publisher disclaims any liability for errors, omissions, or technical malfunctions. \
+        The user is solely responsible for interpreting the results and making clinical decisions based on them. </p>
+
 """, unsafe_allow_html=True)
