@@ -47,7 +47,11 @@ with diag_area:
 
     if import_image_btn or st.session_state['import_image_btn']:
         st.session_state['import_image_btn'] = True
-
+        st.markdown('''
+        <style>
+            .stFileUploaderFile {display: none}
+        <style>''',
+        unsafe_allow_html=True)
         image_uploaded = st.file_uploader(
             "Upload a brain scan image:",
             type=img_allowed_extensions,
