@@ -34,7 +34,7 @@ for key in ['import_image_btn', 'image_uploaded', 'diagnostic', 'loading','image
 
 # Configurations
 img_allowed_extensions = ["jpg", "jpeg", "png"]
-scan_tumor_api_url = "https://scantumor-939517190032.europe-west1.run.app/predict"
+scan_tumor_api_url = "https://scantumor-939517190032.europe-west1.run.app/predict-yolo"
 #scan_tumor_api_url = "http://localhost:8000/predict-yolo"
 
 
