@@ -40,7 +40,7 @@ scan_tumor_api_url = "https://scantumor-939517190032.europe-west1.run.app/predic
 
 # UI Elements
 st.image("images/background_banner.png")
-st.markdown("<h1 style='text-align: center;'>ML & DL BRAIN TUMOR</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>SCAN TUMOR</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center;'>Smart Scans, Clear Results</h3>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>Upload a brain scan to get an AI-powered diagnostic.</p>", unsafe_allow_html=True)
 
