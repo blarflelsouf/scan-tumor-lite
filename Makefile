@@ -5,6 +5,9 @@
 streamlit:
 	-@streamlit run app.py
 
+streamlit2:
+	-@streamlit run app-v2.py
+
 # ----------------------------------
 #    LOCAL INSTALL COMMANDS
 # ----------------------------------
